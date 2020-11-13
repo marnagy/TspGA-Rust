@@ -5,17 +5,17 @@ extern crate rand;
 use rand::prelude::*;
 
 fn main() {
-    let points_num = 100;
+    let points_num = 20;
 
     let mut temp_points: Vec<Point> = Vec::new();
     for _ in 0..points_num {
         let temp_point = Point {
-            x: random::<f64>() * (10 as f64),
-            y: random::<f64>() * (10 as f64),
+            x: random::<f64>() * 10_f64,
+            y: random::<f64>() * 10_f64,
         };
         temp_points.push(temp_point);
     }
-    let points = temp_points.clone();
+    let points = temp_points;
 
     println!("Points");
     for p in &points {
@@ -23,7 +23,7 @@ fn main() {
     }
     println!();
 
-    let ngen: i32 = 5_000; //load_number();
+    let ngen: i32 = 500; //load_number();
     let cx_prob: f64 = 0.7;
     let mut_prob: f64 = 0.2;
     let pop_size: i32 = 50;
@@ -63,20 +63,20 @@ fn load_number() -> i32 {
     number.trim().parse().unwrap()
 }
 
-fn min(vec: &Vec<f64>) -> f64 {
-    if vec.len() == 0 {
+fn min(vec: &[f64]) -> f64 {
+    if vec.is_empty() {
         panic!("Cannot find min in empty vector");
     }
     let mut res: f64 = vec[0];
-    for i in 0..vec.len() {
-        if vec[i] < res {
-            res = vec[i];
+    for val in vec {
+        if val < &res {
+            res = *val;
         }
     };
     res
 }
 
-fn average(vec: &Vec<f64>) -> f64 {
+fn average(vec: &[f64]) -> f64 {
     let mut res = 0 as f64;
     for num in vec {
         res += num;
@@ -105,36 +105,40 @@ fn create_pop(amount: i32, max_index: usize) -> Vec<Vec<usize>> {
 
 fn mutate(crossed_over: Vec<Vec<usize>>, mut_prob: f64) -> Vec<Vec<usize>> {
     let mut next_gen: Vec<Vec<usize>> = Vec::new();
-    for i in 0..crossed_over.len() {
+    for ind in crossed_over {
         if random::<f64>() < mut_prob {
-            next_gen.push(swap_mut(&crossed_over[i]));
+            next_gen.push(swap_mut(&ind));
         } else {
-            next_gen.push(crossed_over[i].clone());
+            next_gen.push(ind);
         }
     }
     next_gen
 }
 
-fn swap_mut(ind_c: &Vec<usize>) -> Vec<usize> {
-    let mut ind = ind_c.clone();
+fn swap_mut(ind_c: &[usize]) -> Vec<usize> {
+    let mut ind = ind_c.to_owned();
     let i1 = random::<usize>() % ind.len();
     let mut i2 = random::<usize>() % ind.len();
     while i1 == i2 {
         i2 = random::<usize>() % ind.len();
     }
-    let temp = ind[i1];
-    ind[i1] = ind[i2];
-    ind[i2] = temp;
-    ind.clone()
+    ind.swap(i1, i2);
+    ind
 }
 
 fn crossover(mating_pool: Vec<Vec<usize>>, cx_prob: f64) -> Vec<Vec<usize>> {
     let mut next_gen: Vec<Vec<usize>> = Vec::new();
-    for i in 0..(mating_pool.len() as f64 / 2 as f64).floor() as usize {
-        let tup = one_point_cx(mating_pool[i].clone(), mating_pool[i + 1].clone());
+    for i in 0..(mating_pool.len() as f64 / 2_f64).floor() as usize {
+        if random::<f64>() < cx_prob{
+            let tup = one_point_cx(mating_pool[i].clone(), mating_pool[i + 1].clone());
+            next_gen.push(tup.0);
+            next_gen.push(tup.1);
+        }
+        else{
+            next_gen.push(mating_pool[i].clone());
+            next_gen.push(mating_pool[i+1].clone());
+        }
 
-        next_gen.push(tup.0);
-        next_gen.push(tup.1);
     }
     next_gen
 }
@@ -155,21 +159,21 @@ fn one_point_cx(p1: Vec<usize>, p2: Vec<usize>) -> (Vec<usize>, Vec<usize>) {
     (o1, o2)
 }
 
-fn fitness(individual: &Vec<usize>, points: &Vec<Point>) -> (f64, f64) {
+fn fitness(individual: &[usize], points: &[Point]) -> (f64, f64) {
     let mut res = 0 as f64;
     let length = individual.len();
     for i in 0..(length - 1) {
         res += get_distance(&points[individual[i]], &points[individual[i + 1]]);
     }
     res += get_distance(&points[0], &points[length - 1]);
-    (1 as f64 / res, res)
+    (1_f64 / res, res)
 }
 
 fn get_distance(p1: &Point, p2: &Point) -> f64 {
     ((p1.x - p2.x).powi(2) + (p1.y - p2.y).powi(2)).sqrt()
 }
 
-fn tournament_selecion(population: &Vec<Vec<usize>>, fits: Vec<f64>) -> Vec<Vec<usize>> {
+fn tournament_selecion(population: &[Vec<usize>], fits: Vec<f64>) -> Vec<Vec<usize>> {
     let mut mating_pool: Vec<Vec<usize>> = Vec::new();
     for _ in 0..population.len() {
         let mut mating_candidate: usize = 0 as usize;
@@ -177,10 +181,8 @@ fn tournament_selecion(population: &Vec<Vec<usize>>, fits: Vec<f64>) -> Vec<Vec<
             let rand_index = random::<usize>() % population.len();
             if i == 0 {
                 mating_candidate = rand_index;
-            } else {
-                if fits[mating_candidate as usize] < fits[rand_index as usize] {
+            } else if fits[mating_candidate as usize] < fits[rand_index as usize] {
                     mating_candidate = rand_index as usize;
-                }
             }
         }
         mating_pool.push(population[mating_candidate].clone());

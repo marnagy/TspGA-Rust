@@ -1,5 +1,5 @@
 [package]
-name = "TspGA"
+name = "tsp_ga"
 version = "0.1.0"
 authors = ["Marek Nagy <62247071@cuni.cz>"]
 edition = "2018"
