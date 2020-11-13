@@ -5,15 +5,15 @@ extern crate rand;
 use rand::prelude::*;
 
 fn main() {
-    let points_num = 20;
+    let points_num = 50;
 
     let mut temp_points: Vec<Point> = Vec::new();
     for _ in 0..points_num {
-        let temp_point = Point {
-            x: random::<f64>() * 10_f64,
-            y: random::<f64>() * 10_f64,
-        };
-        temp_points.push(temp_point);
+        temp_points.push( Point{
+                x: random::<f64>() * 10_f64,
+                y: random::<f64>() * 10_f64
+            }
+        );
     }
     let points = temp_points;
 
@@ -23,7 +23,7 @@ fn main() {
     }
     println!();
 
-    let ngen: i32 = 500; //load_number();
+    let ngen: i32 = load_number();
     let cx_prob: f64 = 0.7;
     let mut_prob: f64 = 0.2;
     let pop_size: i32 = 50;
